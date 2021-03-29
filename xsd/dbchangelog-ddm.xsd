@@ -1,0 +1,842 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.liquibase.org/xml/ns/dbchangelog-ext" elementFormDefault="qualified">
+
+	<xsd:annotation>
+		<xsd:appinfo>EDP-DDM project</xsd:appinfo>
+		<xsd:documentation xml:lang="en">
+			This Schema defines a new data type in PostgreSQL for two forms:
+			  CREATE TYPE name AS ( [ attribute_name data_type [ COLLATE collation ] [, ... ] ] )
+			  CREATE TYPE name AS ENUM ( [ 'label' [, ... ] ] )
+		</xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:complexType name="labelType" mixed="true">
+		<xsd:attribute name="translation" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:simpleType name="colDataType">
+		<xsd:union>
+<!--			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="BOOLEAN"/>
+					<xsd:enumeration value="INTEGER"/>
+					<xsd:enumeration value="TEXT"/>
+				</xsd:restriction>
+			</xsd:simpleType>-->
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:pattern value="[Bb][Oo][Oo][Ll][Ee][Aa][Nn]"/>
+					<xsd:pattern value="[Ii][Nn][Tt][Ee][Gg][Ee][Rr]"/>
+					<xsd:pattern value="[Tt][Ee][Xx][Tt]"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:union>
+	</xsd:simpleType>
+
+	<xsd:element name="createType">
+		<xsd:complexType>
+			<xsd:choice maxOccurs="1">
+				<xsd:element name="asEnum" minOccurs="0" maxOccurs="1">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="label" type="labelType" minOccurs="1" maxOccurs="unbounded"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+
+				<xsd:element name="asComposite" minOccurs="0" maxOccurs="1">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="column" minOccurs="1" maxOccurs="unbounded">
+								<xsd:complexType>
+									<xsd:attribute name="name" type="xsd:string" use="required"/>
+									<xsd:attribute name="type" type="colDataType" use="required"/>
+									<xsd:attribute name="collation" type="xsd:string" use="optional"/>
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:choice>
+			<xsd:attribute name="name" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="dropType">
+		<xsd:complexType>
+			<xsd:attribute name="name" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:annotation>
+		<xsd:appinfo>EDP-DDM project</xsd:appinfo>
+		<xsd:documentation xml:lang="en">
+			This Schema defines a new domain in PostgreSQL:
+				CREATE DOMAIN name [ AS ] data_type
+					[ COLLATE collation ]
+					[ DEFAULT expression ]
+					[ constraint [ ... ] ]
+				
+				where constraint is:
+				
+				[ CONSTRAINT constraint_name ]
+				{ NOT NULL | NULL | CHECK (expression) }
+		</xsd:documentation>
+	</xsd:annotation>
+	<xsd:simpleType name="constraintImpl">
+		<xsd:restriction base="xsd:normalizedString">
+			<xsd:pattern value="NOT NULL|NULL|CHECK (.*)"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:element name="createDomain">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="constraint" minOccurs="0" maxOccurs="unbounded">
+					<xsd:complexType>
+						<xsd:attribute name="name" type="xsd:string" use="optional"/>
+						<xsd:attribute name="implementation" type="xsd:string" use="required"/>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:attribute name="name" type="xsd:string" use="required"/>
+			<xsd:attribute name="type" type="xsd:string" use="required"/>
+			<xsd:attribute name="nullable" type="xsd:boolean" use="optional"/>
+			<xsd:attribute name="collation" type="xsd:string" use="optional"/>
+			<xsd:attribute name="defaultValue" type="xsd:string" use="optional"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="dropDomain">
+		<xsd:complexType>
+			<xsd:attribute name="name" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+
+	<!--    <xsd:import namespace="http://www.liquibase.org/xml/ns/dbchangelog" schemaLocation="dbchangelog-4.2.xsd"/>-->
+
+	<xsd:annotation>
+		<xsd:appinfo>EDP-DDM project</xsd:appinfo>
+		<xsd:documentation xml:lang="en">
+			This Schema introduces additional attributes "historyFlag" and "distribution" for standard element "createTable".
+			"historyFlag" attribute implements DDM feature: historical tables.
+				If historyFlag="true" liquibase will generate DDL for two tables:
+					historical data table_name=ENTITY_NAME_hst (append only allowed)
+					recent data table_name=ENTITY_NAME (all DMLs allowed)
+			"distribution" attribute implements DDM feature: distribution in Citus cluster for recent data and/or historical data.
+			"distribution" attribute has several options:
+				"local" -             liquibase will not generate any API calls to distribute tables in Citus cluster
+				"distributeAll" -     liquibase will generate API call to distribute recent and historical data tables
+				"distributePrimary" - liquibase will generate API call to distribute recent data table
+				"distributeHistory" - liquibase will generate API call to distribute historical data table
+				"referenceAll" -      liquibase will generate API call to reference recent and historical data tables
+				"referencePrimary" -  liquibase will generate API call to reference recent data table
+				"referenceHistory" -  liquibase will generate API call to reference historical data table
+		</xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:simpleType name="distributionType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="local"/>
+			<xsd:enumeration value="distributeAll"/>
+			<xsd:enumeration value="distributePrimary"/>
+			<xsd:enumeration value="distributeHistory"/>
+			<xsd:enumeration value="referenceAll"/>
+			<xsd:enumeration value="referencePrimary"/>
+			<xsd:enumeration value="referenceHistory"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="classifyType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="private"/>
+			<xsd:enumeration value="confidential"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:attribute name="historyFlag" type="xsd:boolean"/>
+	<xsd:attribute name="readMode" type="readType" default="sync"/>
+	<xsd:attribute name="distribution" type="distributionType" default="local"/>
+	<xsd:attribute name="classify" type="classifyType"/>
+	<xsd:attribute name="autoGenerate" type="xsd:string"/>
+
+	<xsd:annotation>
+		<xsd:appinfo>EDP-DDM project</xsd:appinfo>
+		<xsd:documentation xml:lang="en">
+			This Schema defines Citus distributed functionality (Table and Shard DDL)
+		</xsd:documentation>
+	</xsd:annotation>
+
+    <!-- create_distributed_table() -->
+
+	<xsd:simpleType name="distTypeOptions">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="append"/>
+			<xsd:enumeration value="hash"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="scopeTypeOptions">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="all"/>
+			<xsd:enumeration value="primary"/>
+			<xsd:enumeration value="history"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:element name="distributeTable">
+		<xsd:complexType>
+			<xsd:attribute name="tableName" type="xsd:string" use="required"/>
+			<xsd:attribute name="distributionColumn" type="xsd:string" use="required"/>
+			<xsd:attribute name="distributionType" type="distTypeOptions" use="optional" default="hash"/>
+			<xsd:attribute name="colocateWith" type="xsd:string" use="optional"/>
+			<xsd:attribute name="scope" type="scopeTypeOptions" use="optional" default="primary"/>
+		</xsd:complexType>
+	</xsd:element>
+
+    <!-- create_reference_table() -->
+
+	<xsd:element name="referenceTable">
+		<xsd:complexType>
+			<xsd:attribute name="tableName" type="xsd:string" use="required"/>
+			<xsd:attribute name="scope" type="scopeTypeOptions" use="optional" default="primary"/>
+		</xsd:complexType>
+	</xsd:element>
+
+    <!-- truncate_local_data_after_distributing_table() -->
+
+	<xsd:element name="truncateLocalDataAfterDistributingTable">
+		<xsd:complexType>
+			<xsd:attribute name="tableName" type="xsd:string" use="required"/>
+			<xsd:attribute name="scope" type="scopeTypeOptions" use="optional" default="primary"/>
+		</xsd:complexType>
+	</xsd:element>
+
+    <!-- undistribute_table() -->
+
+	<xsd:element name="undistributeTable">
+		<xsd:complexType>
+			<xsd:attribute name="tableName" type="xsd:string" use="required"/>
+			<xsd:attribute name="scope" type="scopeTypeOptions" use="optional" default="primary"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<!-- createSearchCondition -->
+
+	<xsd:annotation>
+		<xsd:appinfo>EDP-DDM project</xsd:appinfo>
+		<xsd:documentation xml:lang="en">
+			This Schema defines a new "searchCondition" instance which reflects on a view and an index in PostgreSQL
+		</xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:simpleType name="searchType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="equal"/>
+			<xsd:enumeration value="startsWith"/>
+			<xsd:enumeration value="contains"/>
+			<xsd:enumeration value="in"/>
+			<xsd:enumeration value="between"/>
+			<xsd:enumeration value="notIn"/>
+			<xsd:enumeration value="notEqual"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="limitType">
+		<xsd:restriction base="xsd:string">
+			<xsd:pattern value="all"/>
+			<xsd:pattern value="[0-9]*"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="sortType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="asc"/>
+			<xsd:enumeration value="desc"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="joinTypeSql">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="inner"/>
+			<xsd:enumeration value="left"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="functionTypeSql">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="min"/>
+			<xsd:enumeration value="max"/>
+			<xsd:enumeration value="avg"/>
+			<xsd:enumeration value="count"/>
+			<xsd:enumeration value="sum"/>
+			<xsd:enumeration value="string_agg"/>
+			<xsd:enumeration value="row_number"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="readType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="sync"/>
+			<xsd:enumeration value="async"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="operatorType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="eq"/>       <!-- equal -->
+			<xsd:enumeration value="ne"/>       <!-- not equal -->
+			<xsd:enumeration value="gt"/>       <!-- greater than -->
+			<xsd:enumeration value="ge"/>       <!-- greater or equal -->
+			<xsd:enumeration value="lt"/>       <!-- less than -->
+			<xsd:enumeration value="le"/>       <!-- less or equal -->
+			<xsd:enumeration value="in"/>       <!-- in -->
+			<xsd:enumeration value="notIn"/>    <!-- not in -->
+			<xsd:enumeration value="isNull"/>   <!-- is null -->
+			<xsd:enumeration value="similar"/>  <!-- similar -->
+			<xsd:enumeration value="like"/>     <!-- like -->
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="logicOperatorType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="and"/>
+			<xsd:enumeration value="or"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="fetchType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="id"/>
+			<xsd:enumeration value="entity"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:attributeGroup name="conditionAttributeGroup">
+		<xsd:attribute name="tableAlias" type="xsd:string" use="optional"/>
+		<xsd:attribute name="columnName" type="xsd:string" use="required"/>
+		<xsd:attribute name="operator" type="operatorType" use="required"/>
+		<xsd:attribute name="value" type="xsd:string" use="required"/>
+	</xsd:attributeGroup>
+
+	<xsd:group name="firstConditionGroup">
+		<xsd:sequence>
+			<xsd:element name="condition" minOccurs="1" maxOccurs="1">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:group ref="nextConditionGroup" minOccurs="0" maxOccurs="unbounded"/>
+					</xsd:sequence>
+					<xsd:attributeGroup ref="conditionAttributeGroup"/>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:group>
+
+	<xsd:group name="nextConditionGroup">
+		<xsd:sequence>
+			<xsd:element name="condition" type="conditionType" minOccurs="1" maxOccurs="1"/>
+		</xsd:sequence>
+	</xsd:group>
+
+	<xsd:complexType name="conditionType">
+		<xsd:sequence>
+			<xsd:element name="condition" type="conditionType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="logicOperator" type="logicOperatorType" use="required"/>
+		<xsd:attributeGroup ref="conditionAttributeGroup"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="columnType">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="alias" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="columnSearchConditionType">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="returning" type="xsd:boolean" use="optional" default="true"/>
+		<xsd:attribute name="type" type="xsd:string" use="optional" default="text"/>
+		<xsd:attribute name="alias" type="xsd:string" use="optional"/>
+		<xsd:attribute name="searchType" type="searchType" use="optional"/>
+		<xsd:attribute name="sorting" type="sortType" use="optional"/>
+		<xsd:attribute name="fetchType" type="fetchType" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="functionType">
+		<xsd:attribute name="name" type="functionTypeSql" use="required"/>
+		<xsd:attribute name="columnName" type="xsd:string" use="required"/>
+		<xsd:attribute name="alias" type="xsd:string" use="required"/>
+		<xsd:attribute name="parameter" type="xsd:string" use="optional"/>
+		<xsd:attribute name="window" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="tableType">
+		<xsd:sequence>
+			<xsd:choice minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="column" type="columnType" maxOccurs="unbounded"/>
+				<xsd:element name="function" type="functionType" maxOccurs="unbounded"/>
+			</xsd:choice>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="alias" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="tableSearchConditionType">
+		<xsd:sequence>
+			<xsd:choice minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="column" type="columnSearchConditionType" maxOccurs="unbounded"/>
+				<xsd:element name="function" type="functionType" maxOccurs="unbounded"/>
+			</xsd:choice>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="alias" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="joinColumnType">
+		<xsd:sequence>
+			<xsd:element name="column" minOccurs="1" maxOccurs="unbounded">
+				<xsd:complexType>
+					<xsd:attribute name="name" type="xsd:string" use="required"/>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="alias" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="joinType">
+		<xsd:sequence>
+			<xsd:element name="left" type="joinColumnType" maxOccurs="1"/>
+			<xsd:element name="right" type="joinColumnType" maxOccurs="1"/>
+			<xsd:group ref="nextConditionGroup" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="type" type="joinTypeSql" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="whereType">
+		<xsd:sequence>
+			<xsd:group ref="firstConditionGroup" minOccurs="1" maxOccurs="1"/>
+			<xsd:group ref="nextConditionGroup" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="createSimpleSearchCondition">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="table" minOccurs="1" maxOccurs="1">
+					<xsd:complexType>
+						<xsd:attribute name="name" type="xsd:string" use="required"/>
+						<xsd:attribute name="alias" type="xsd:string" use="required"/>
+						<xsd:attribute name="searchColumn" type="xsd:string" use="optional"/>
+						<xsd:attribute name="searchType" type="searchType" use="optional"/>
+						<xsd:attribute name="type" type="xsd:string" use="optional" default="text"/>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:attribute name="name" type="xsd:string" use="required"/>
+			<xsd:attribute name="readMode" type="readType" use="optional"/>
+			<xsd:attribute name="indexing" type="xsd:boolean" use="optional"/>
+			<xsd:attribute name="limit" type="limitType" use="optional" default="all"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="selectCteType">
+		<xsd:sequence>
+			<xsd:element name="table" type="tableType" minOccurs="1" maxOccurs="unbounded"/>
+			<xsd:element name="join" type="joinType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="where" type="whereType" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="selectSearchConditionType">
+		<xsd:sequence>
+			<xsd:choice minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="cte" type="selectCteType" maxOccurs="unbounded"/>
+				<xsd:element name="table" type="tableSearchConditionType" maxOccurs="unbounded"/>
+			</xsd:choice>
+			<xsd:element name="join" type="joinType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="where" type="whereType" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="readMode" type="readType" use="optional"/>
+		<xsd:attribute name="indexing" type="xsd:boolean" use="optional"/>
+		<xsd:attribute name="limit" type="limitType" use="optional" default="all"/>
+		<xsd:attribute name="pagination" type="xsd:boolean" use="optional" default="true"/>
+	</xsd:complexType>
+
+	<xsd:element name="createSearchCondition" type="selectSearchConditionType">
+	</xsd:element>
+
+	<xsd:element name="dropSearchCondition">
+		<xsd:complexType>
+			<xsd:attribute name="name" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="exposeSearchCondition">
+		<xsd:complexType>
+			<xsd:attribute name="name" type="xsd:string" use="required"/>
+			<xsd:attribute name="trembita" type="xsd:boolean" use="optional" default="false"/>
+			<xsd:attribute name="platform" type="xsd:boolean" use="optional" default="false"/>
+			<xsd:attribute name="externalSystem" type="xsd:boolean" use="optional" default="false"/>
+		</xsd:complexType>
+	</xsd:element>
+
+<!--	createAnalyticsView    -->
+
+	<xsd:annotation>
+		<xsd:appinfo>EDP-DDM project</xsd:appinfo>
+		<xsd:documentation xml:lang="en">
+			This Schema defines a new "analyticsView" instance which reflects on a view and an index in PostgreSQL
+		</xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:complexType name="selectAnalyticsViewType">
+		<xsd:sequence>
+			<xsd:choice minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="cte" type="selectCteType" maxOccurs="unbounded"/>
+				<xsd:element name="table" type="tableSearchConditionType" maxOccurs="unbounded"/>
+			</xsd:choice>
+			<xsd:element name="join" type="joinType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="where" type="whereType" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="indexing" type="xsd:boolean" use="optional"/>
+		<xsd:attribute name="limit" type="limitType" use="optional" default="all"/>
+		<xsd:attribute name="pagination" type="xsd:boolean" use="optional" default="false"/>
+	</xsd:complexType>
+
+	<xsd:element name="createAnalyticsView" type="selectAnalyticsViewType">
+	</xsd:element>
+
+	<xsd:element name="dropAnalyticsView">
+		<xsd:complexType>
+			<xsd:attribute name="name" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:attributeGroup name="createIndex">
+		<xsd:attributeGroup ref="tableNameAttribute"/>
+		<xsd:attributeGroup ref="indexName"/>
+		<xsd:attribute name="associatedWith" type="xsd:string" use="optional"/>
+		<xsd:attribute name="unique" type="booleanExp"/>
+		<xsd:attribute name="tablespace" type="xsd:string" />
+	</xsd:attributeGroup>
+	<xsd:attributeGroup name="tableNameAttribute">
+		<xsd:attribute name="catalogName" type="xsd:string" />
+		<xsd:attribute name="schemaName" type="xsd:string" />
+		<xsd:attribute name="tableName" type="xsd:string" use="required" />
+	</xsd:attributeGroup>
+	<xsd:attributeGroup name="indexName">
+		<xsd:attribute name="indexName" type="xsd:string" use="required"/>
+	</xsd:attributeGroup>
+	<xsd:attributeGroup name="changeAttributes">
+		<xsd:anyAttribute namespace="##other" processContents="lax"/>
+	</xsd:attributeGroup>
+	<xsd:simpleType name="booleanExp" id="booleanExp">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<xsd:documentation>Extension to standard XSD boolean type to allow ${} parameters</xsd:documentation>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:union>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:boolean"/>
+			</xsd:simpleType>
+			<xsd:simpleType>
+				<xsd:restriction base="propertyExpression"/>
+			</xsd:simpleType>
+		</xsd:union>
+	</xsd:simpleType>
+	<xsd:simpleType name="propertyExpression" id="propertyExpression">
+		<xsd:restriction base="xsd:string">
+			<xsd:pattern value="$\{[\w\.]+\}"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:element name="column">
+		<xsd:complexType mixed="true">
+			<xsd:sequence>
+				<xsd:element ref="constraints" minOccurs="0"/>
+			</xsd:sequence>
+			<xsd:attributeGroup ref="column"/>
+			<xsd:anyAttribute namespace="##other" processContents="lax"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="constraints">
+		<xsd:complexType>
+			<xsd:attributeGroup ref="constraintsAttributes"/>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:attributeGroup name="constraintsAttributes">
+		<xsd:attribute name="nullable" type="booleanExp"/>
+		<xsd:attribute name="notNullConstraintName" type="xsd:string"/>
+		<xsd:attribute name="primaryKey" type="booleanExp"/>
+		<xsd:attribute name="primaryKeyName" type="xsd:string"/>
+		<xsd:attribute name="primaryKeyTablespace" type="xsd:string"/>
+		<xsd:attribute name="unique" type="booleanExp"/>
+		<xsd:attribute name="uniqueConstraintName" type="xsd:string"/>
+		<xsd:attribute name="references" type="xsd:string"/>
+		<xsd:attribute name="referencedTableCatalogName" type="xsd:string"/>
+		<xsd:attribute name="referencedTableSchemaName" type="xsd:string"/>
+		<xsd:attribute name="referencedTableName" type="xsd:string"/>
+		<xsd:attribute name="referencedColumnNames" type="xsd:string"/>
+		<xsd:attribute name="foreignKeyName" type="xsd:string"/>
+		<xsd:attribute name="deleteCascade" type="booleanExp"/>
+		<xsd:attribute name="deferrable" type="booleanExp"/>
+		<xsd:attribute name="initiallyDeferred" type="booleanExp"/>
+		<xsd:attribute name="checkConstraint" type="xsd:string"/>
+		<xsd:attribute name="validateNullable" type="booleanExp"/>
+		<xsd:attribute name="validateUnique" type="booleanExp"/>
+		<xsd:attribute name="validatePrimaryKey" type="booleanExp"/>
+		<xsd:attribute name="validateForeignKey" type="booleanExp"/>
+	</xsd:attributeGroup>
+	<xsd:attributeGroup name="column">
+		<xsd:attribute name="name" type="xsd:string"/>
+		<xsd:attribute name="computed" type="booleanExp"/>
+		<xsd:attribute name="descending" type="booleanExp"/>
+		<xsd:attribute name="type" type="xsd:string"/>
+		<xsd:attribute name="value" type="xsd:string"/>
+		<xsd:attribute name="valueNumeric" type="xsd:string"/>
+		<xsd:attribute name="valueBoolean" type="xsd:string"/>
+		<xsd:attribute name="valueDate" type="xsd:string"/>
+		<xsd:attribute name="valueComputed" type="xsd:string"/>
+		<xsd:attribute name="valueSequenceCurrent" type="xsd:string"/>
+		<xsd:attribute name="valueSequenceNext" type="xsd:string"/>
+		<xsd:attribute name="valueBlobFile" type="xsd:string"/>
+		<xsd:attribute name="valueClobFile" type="xsd:string"/>
+		<xsd:attribute name="defaultValue" type="xsd:string"/>
+		<xsd:attribute name="defaultValueNumeric" type="xsd:string"/>
+		<xsd:attribute name="defaultValueDate" type="xsd:string"/>
+		<xsd:attribute name="defaultValueBoolean" type="booleanExp"/>
+		<xsd:attribute name="defaultValueComputed" type="xsd:string"/>
+		<xsd:attribute name="defaultValueSequenceCurrent" type="xsd:string"/>
+		<xsd:attribute name="defaultValueSequenceNext" type="xsd:string"/>
+		<xsd:attribute name="defaultValueConstraintName" type="xsd:string"/>
+		<xsd:attribute name="autoIncrement" type="booleanExp"/>
+		<xsd:attribute name="startWith" type="xsd:long"/>
+		<xsd:attribute name="incrementBy" type="xsd:long"/>
+		<xsd:attribute name="generationType" type="xsd:string"/>
+		<xsd:attribute name="defaultOnNull" type="booleanExp"/>
+		<xsd:attribute name="remarks" type="xsd:string"/>
+		<xsd:attribute name="encoding" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<xsd:documentation>
+						Used with valueClobFile to specify file encoding explicitly.
+					</xsd:documentation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:anyAttribute namespace="##other" processContents="lax"/>
+	</xsd:attributeGroup>
+	<xsd:element name="createAnalyticsIndex">
+		<xsd:complexType>
+			<xsd:choice maxOccurs="unbounded">
+				<xsd:element ref="column" maxOccurs="unbounded"/>
+				<xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:choice>
+			<xsd:attributeGroup ref="changeAttributes"/>
+			<xsd:attributeGroup ref="createIndex"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<!--	nested entities   -->
+
+	<xsd:complexType name="nestedType">
+		<xsd:sequence>
+			<xsd:element name="link" minOccurs="0" maxOccurs="unbounded">
+				<xsd:complexType>
+					<xsd:attribute name="column" type="xsd:string" use="required"/>
+					<xsd:attribute name="entity" type="xsd:string" use="required"/>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="table" type="xsd:string" use="required"/>
+		<xsd:attribute name="name" type="xsd:string"/>
+	</xsd:complexType>
+
+	<xsd:element name="nestedEntity" type="nestedType"/>
+
+	<xsd:element name="createCompositeEntity">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="nestedEntity" type="nestedType" maxOccurs="unbounded"/>
+			</xsd:sequence>
+			<xsd:attribute name="name" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+<!-- 	tableReadParameters -->
+	<xsd:complexType name="tableReadParametersType">
+		<xsd:sequence>
+			<xsd:element name="column" minOccurs="0" maxOccurs="unbounded">
+				<xsd:complexType>
+					<xsd:attribute name="name" type="xsd:string" use="required"/>
+					<xsd:attribute name="fetchType" type="fetchType" use="required"/>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="table" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:element name="tableReadParameters" type="tableReadParametersType" />
+
+<!--	createMany2Many    -->
+
+	<xsd:annotation>
+		<xsd:appinfo>EDP-DDM project</xsd:appinfo>
+		<xsd:documentation xml:lang="en">
+			This Schema defines a many to many relationship for two tables, based on key and an array of referenced ids in an array:
+			CREATE VIEW name AS ( SELECT key1_id, UNNEST(key2_array) AS key2_id FROM table );
+			CREATE INDEX index_name USING gin(key2_array);
+		</xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:complexType name="m2mColumnsType">
+		<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+			<xsd:element name="column">
+				<xsd:complexType>
+					<xsd:attribute name="name" type="xsd:string" use="required"/>
+					<xsd:attribute name="alias" type="xsd:string" use="optional"/>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="createMany2Many">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="mainTableColumns" type="m2mColumnsType" minOccurs="0" maxOccurs="1"/>
+				<xsd:element name="referenceTableColumns" type="m2mColumnsType" minOccurs="0" maxOccurs="1"/>
+			</xsd:sequence>
+			<xsd:attribute name="mainTableName" type="xsd:string" use="required"/>
+			<xsd:attribute name="mainTableKeyField" type="xsd:string" use="required"/>
+			<xsd:attribute name="referenceTableName" type="xsd:string" use="required"/>
+			<xsd:attribute name="referenceKeysArray" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+<!--	RBAC    -->
+
+	<xsd:annotation>
+		<xsd:appinfo>EDP-DDM project</xsd:appinfo>
+		<xsd:documentation xml:lang="en">
+			This Schema defines RBAC
+		</xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:complexType name="rbacColumnType">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="read" type="xsd:boolean" use="optional"/>
+		<xsd:attribute name="update" type="xsd:boolean" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="rbacTableType">
+		<xsd:sequence>
+			<xsd:element name="column" type="rbacColumnType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="insert" type="xsd:boolean" use="optional"/>
+		<xsd:attribute name="delete" type="xsd:boolean" use="optional"/>
+		<xsd:attribute name="read" type="xsd:boolean" use="optional"/>
+		<xsd:attribute name="update" type="xsd:boolean" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="rbacRoleType">
+		<xsd:sequence>
+			<xsd:element name="table" type="rbacTableType" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="rbacRealmRoleType">
+		<xsd:sequence>
+			<xsd:element name="table" type="rbacTableType" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="realm" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="rbacType">
+		<xsd:sequence>
+			<xsd:element name="role" type="rbacRealmRoleType" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="rbac" type="rbacType"/>
+
+	<!--	PARTIAL UPDATE    -->
+
+	<xsd:element name="partialUpdate">
+		<xsd:complexType>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="table">
+					<xsd:complexType>
+						<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+							<xsd:element name="column">
+								<xsd:complexType>
+									<xsd:attribute name="name" type="xsd:string" use="required"/>
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
+						<xsd:attribute name="name" type="xsd:string" use="required"/>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:attribute name="name" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<!--	MAKE OBJECT    -->
+
+	<xsd:attribute name="isObject" type="xsd:boolean"/>
+
+	<xsd:element name="makeObject">
+		<xsd:complexType>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="table">
+					<xsd:complexType>
+						<xsd:attribute name="name" type="xsd:string" use="required"/>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+
+	<!--	GRANT    -->
+
+	<xsd:complexType name="grantViewType">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="grantRoleType">
+		<xsd:sequence>
+			<xsd:element name="view" type="grantViewType" minOccurs="1" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="grantType">
+		<xsd:sequence>
+			<xsd:element name="role" type="grantRoleType" minOccurs="1" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="grant" type="grantType"/>
+
+	<xsd:element name="revoke" type="grantType"/>
+
+	<xsd:complexType name="grantRoleSimpleType">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="grantAllType">
+		<xsd:sequence>
+			<xsd:element name="role" type="grantRoleSimpleType" minOccurs="1" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="grantAll" type="grantAllType"/>
+
+	<xsd:element name="revokeAll" type="grantAllType"/>
+
+</xsd:schema>
