@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.liquibase.org/xml/ns/dbchangelog-ext" targetNamespace="http://www.liquibase.org/xml/ns/dbchangelog-ext" elementFormDefault="qualified">
+	<xsd:include schemaLocation="features/createType.xsd"/>
+	<xsd:include schemaLocation="features/createDomain.xsd"/>
+	<xsd:include schemaLocation="features/createTableDDM.xsd"/>
+	<xsd:include schemaLocation="features/citus.xsd"/>
+	<xsd:include schemaLocation="features/createSearchCondition.xsd"/>
+	<xsd:include schemaLocation="features/createMany2Many.xsd"/>
+	<xsd:include schemaLocation="features/rbac.xsd"/>
+	<xsd:include schemaLocation="features/partialUpdate.xsd"/>
+	<xsd:include schemaLocation="features/subjectObject.xsd"/>
+</xsd:schema>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.liquibase.org/xml/ns/dbchangelog-ext" targetNamespace="http://www.liquibase.org/xml/ns/dbchangelog-ext" elementFormDefault="qualified">
+
+	<xsd:annotation>
+		<xsd:appinfo>MDTU-DDM project</xsd:appinfo>
+		<xsd:documentation xml:lang="en">
+			This Schema defines Citus distributed functionality (Table and Shard DDL)
+		</xsd:documentation>
+	</xsd:annotation>
+
+    <!-- create_distributed_table() -->
+
+	<xsd:simpleType name="distTypeOptions">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="append"/>
+			<xsd:enumeration value="hash"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="scopeTypeOptions">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="all"/>
+			<xsd:enumeration value="primary"/>
+			<xsd:enumeration value="history"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:element name="distributeTable">
+		<xsd:complexType>
+			<xsd:attribute name="tableName" type="xsd:string" use="required"/>
+			<xsd:attribute name="distributionColumn" type="xsd:string" use="required"/>
+			<xsd:attribute name="distributionType" type="distTypeOptions" use="optional" default="hash"/>
+			<xsd:attribute name="colocateWith" type="xsd:string" use="optional"/>
+			<xsd:attribute name="scope" type="scopeTypeOptions" use="optional" default="primary"/>
+		</xsd:complexType>
+	</xsd:element>
+
+    <!-- create_reference_table() -->
+
+	<xsd:element name="referenceTable">
+		<xsd:complexType>
+			<xsd:attribute name="tableName" type="xsd:string" use="required"/>
+			<xsd:attribute name="scope" type="scopeTypeOptions" use="optional" default="primary"/>
+		</xsd:complexType>
+	</xsd:element>
+
+    <!-- truncate_local_data_after_distributing_table() -->
+
+	<xsd:element name="truncateLocalDataAfterDistributingTable">
+		<xsd:complexType>
+			<xsd:attribute name="tableName" type="xsd:string" use="required"/>
+			<xsd:attribute name="scope" type="scopeTypeOptions" use="optional" default="primary"/>
+		</xsd:complexType>
+	</xsd:element>
+
+    <!-- undistribute_table() -->
+
+	<xsd:element name="undistributeTable">
+		<xsd:complexType>
+			<xsd:attribute name="tableName" type="xsd:string" use="required"/>
+			<xsd:attribute name="scope" type="scopeTypeOptions" use="optional" default="primary"/>
+		</xsd:complexType>
+	</xsd:element>
+</xsd:schema>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2021 (x64) (http://www.altova.com) by ihorb (EPAM Systems) -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.liquibase.org/xml/ns/dbchangelog-ext" targetNamespace="http://www.liquibase.org/xml/ns/dbchangelog-ext" elementFormDefault="qualified">
+	<xsd:annotation>
+		<xsd:appinfo>MDTU-DDM project</xsd:appinfo>
+		<xsd:documentation xml:lang="en">
+			This Schema defines a new data type in PostgreSQL for two forms:
+			  CREATE TYPE name AS ( [ attribute_name data_type [ COLLATE collation ] [, ... ] ] )
+			  CREATE TYPE name AS ENUM ( [ 'label' [, ... ] ] )
+		</xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:complexType name="labelType" mixed="true">
+		<xsd:attribute name="translation" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:simpleType name="colDataType">
+		<xsd:union>
+<!--			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="BOOLEAN"/>
+					<xsd:enumeration value="INTEGER"/>
+					<xsd:enumeration value="TEXT"/>
+				</xsd:restriction>
+			</xsd:simpleType>-->
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:pattern value="[Bb][Oo][Oo][Ll][Ee][Aa][Nn]"/>
+					<xsd:pattern value="[Ii][Nn][Tt][Ee][Gg][Ee][Rr]"/>
+					<xsd:pattern value="[Tt][Ee][Xx][Tt]"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:union>
+	</xsd:simpleType>
+
+	<xsd:element name="createType">
+		<xsd:complexType>
+			<xsd:choice maxOccurs="1">
+				<xsd:element name="asEnum" minOccurs="0" maxOccurs="1">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="label" type="labelType" minOccurs="1" maxOccurs="unbounded"/>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+
+				<xsd:element name="asComposite" minOccurs="0" maxOccurs="1">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="column" minOccurs="1" maxOccurs="unbounded">
+								<xsd:complexType>
+									<xsd:attribute name="name" type="xsd:string" use="required"/>
+									<xsd:attribute name="type" type="colDataType" use="required"/>
+									<xsd:attribute name="collation" type="xsd:string" use="optional"/>
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:choice>
+			<xsd:attribute name="name" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="dropType">
+		<xsd:complexType>
+			<xsd:attribute name="typeName" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+</xsd:schema>

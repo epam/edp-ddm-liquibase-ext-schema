@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog-ext" targetNamespace="http://www.liquibase.org/xml/ns/dbchangelog-ext" elementFormDefault="qualified">
+	<xsd:annotation>
+		<xsd:appinfo>MDTU-DDM project</xsd:appinfo>
+		<xsd:documentation xml:lang="en">
+			This Schema defines a new "searchCondition" instance which reflects on a view and an index in PostgreSQL
+		</xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:simpleType name="searchType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="equal"/>
+			<xsd:enumeration value="startsWith"/>
+			<xsd:enumeration value="contains"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="limitType">
+		<xsd:restriction base="xsd:string">
+			<xsd:pattern value="all"/>
+			<xsd:pattern value="[0-9]*"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="sortType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="asc"/>
+			<xsd:enumeration value="desc"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="joinTypeSql">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="inner"/>
+			<xsd:enumeration value="left"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="functionTypeSql">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="min"/>
+			<xsd:enumeration value="max"/>
+			<xsd:enumeration value="avg"/>
+			<xsd:enumeration value="count"/>
+			<xsd:enumeration value="sum"/>
+			<xsd:enumeration value="string_agg"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="operatorType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="eq"/>       <!-- equal -->
+			<xsd:enumeration value="ne"/>       <!-- not equal -->
+			<xsd:enumeration value="gt"/>       <!-- greater than -->
+			<xsd:enumeration value="ge"/>       <!-- greater or equal -->
+			<xsd:enumeration value="lt"/>       <!-- less than -->
+			<xsd:enumeration value="le"/>       <!-- less or equal -->
+			<xsd:enumeration value="in"/>       <!-- in -->
+			<xsd:enumeration value="notIn"/>    <!-- not in -->
+			<xsd:enumeration value="isNull"/>   <!-- is null -->
+			<xsd:enumeration value="similar"/>  <!-- similar -->
+			<xsd:enumeration value="like"/>     <!-- like -->
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="logicOperatorType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="and"/>
+			<xsd:enumeration value="or"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:attributeGroup name="conditionAttributeGroup">
+		<xsd:attribute name="tableAlias" type="xsd:string" use="optional"/>
+		<xsd:attribute name="columnName" type="xsd:string" use="required"/>
+		<xsd:attribute name="operator" type="operatorType" use="required"/>
+		<xsd:attribute name="value" type="xsd:string" use="required"/>
+	</xsd:attributeGroup>
+
+	<xsd:group name="firstConditionGroup">
+		<xsd:sequence>
+			<xsd:element name="condition" minOccurs="1" maxOccurs="1">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:group ref="nextConditionGroup" minOccurs="0" maxOccurs="unbounded"/>
+					</xsd:sequence>
+					<xsd:attributeGroup ref="conditionAttributeGroup"/>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:group>
+
+	<xsd:group name="nextConditionGroup">
+		<xsd:sequence>
+			<xsd:element name="condition" type="conditionType" minOccurs="1" maxOccurs="1"/>
+		</xsd:sequence>
+	</xsd:group>
+
+	<xsd:complexType name="conditionType">
+		<xsd:sequence>
+			<xsd:element name="condition" type="conditionType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="logicOperator" type="logicOperatorType" use="required"/>
+		<xsd:attributeGroup ref="conditionAttributeGroup"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="columnType">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="alias" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="columnSearchConditionType">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="returning" type="xsd:boolean" use="optional" default="true"/>
+		<xsd:attribute name="type" type="xsd:string" use="optional" default="text"/>
+		<xsd:attribute name="alias" type="xsd:string" use="optional"/>
+		<xsd:attribute name="searchType" type="searchType" use="optional"/>
+		<xsd:attribute name="sorting" type="sortType" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="functionType">
+		<xsd:attribute name="name" type="functionTypeSql" use="required"/>
+		<xsd:attribute name="columnName" type="xsd:string" use="required"/>
+		<xsd:attribute name="alias" type="xsd:string" use="required"/>
+		<xsd:attribute name="parameter" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="tableType">
+		<xsd:sequence>
+			<xsd:choice minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="column" type="columnType" maxOccurs="unbounded"/>
+				<xsd:element name="function" type="functionType" maxOccurs="unbounded"/>
+			</xsd:choice>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="alias" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="tableSearchConditionType">
+		<xsd:sequence>
+			<xsd:choice minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="column" type="columnSearchConditionType" maxOccurs="unbounded"/>
+				<xsd:element name="function" type="functionType" maxOccurs="unbounded"/>
+			</xsd:choice>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="alias" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="joinColumnType">
+		<xsd:sequence>
+			<xsd:element name="column" minOccurs="1" maxOccurs="unbounded">
+				<xsd:complexType>
+					<xsd:attribute name="name" type="xsd:string" use="required"/>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="alias" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="joinType">
+		<xsd:sequence>
+			<xsd:element name="left" type="joinColumnType" maxOccurs="1"/>
+			<xsd:element name="right" type="joinColumnType" maxOccurs="1"/>
+			<xsd:group ref="nextConditionGroup" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="type" type="joinTypeSql" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="whereType">
+		<xsd:sequence>
+			<xsd:group ref="firstConditionGroup" minOccurs="1" maxOccurs="1"/>
+			<xsd:group ref="nextConditionGroup" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="createSimpleSearchCondition">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="table" minOccurs="1" maxOccurs="1">
+					<xsd:complexType>
+						<xsd:attribute name="name" type="xsd:string" use="required"/>
+						<xsd:attribute name="alias" type="xsd:string" use="required"/>
+						<xsd:attribute name="searchColumn" type="xsd:string" use="optional"/>
+						<xsd:attribute name="searchType" type="searchType" use="optional"/>
+						<xsd:attribute name="type" type="xsd:string" use="optional" default="text"/>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:attribute name="name" type="xsd:string" use="required"/>
+			<xsd:attribute name="indexing" type="xsd:boolean" use="optional" default="false"/>
+			<xsd:attribute name="limit" type="limitType" use="optional" default="all"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="selectCteType">
+		<xsd:sequence>
+			<xsd:element name="table" type="tableType" minOccurs="1" maxOccurs="unbounded"/>
+			<xsd:element name="join" type="joinType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="where" type="whereType" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="selectSearchConditionType">
+		<xsd:sequence>
+			<xsd:choice minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="cte" type="selectCteType" maxOccurs="unbounded"/>
+				<xsd:element name="table" type="tableSearchConditionType" maxOccurs="unbounded"/>
+			</xsd:choice>
+			<xsd:element name="join" type="joinType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="where" type="whereType" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="indexing" type="xsd:boolean" use="optional" default="false"/>
+		<xsd:attribute name="limit" type="limitType" use="optional" default="all"/>
+		<xsd:attribute name="pagination" type="xsd:boolean" use="optional" default="false"/>
+	</xsd:complexType>
+
+	<xsd:element name="createSearchCondition" type="selectSearchConditionType">
+	</xsd:element>
+
+	<xsd:element name="dropSearchCondition">
+		<xsd:complexType>
+			<xsd:attribute name="name" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="exposeSearchCondition">
+		<xsd:complexType>
+			<xsd:attribute name="name" type="xsd:string" use="required"/>
+			<xsd:attribute name="consumer" type="xsd:string" use="optional" default="trembita"/>
+		</xsd:complexType>
+	</xsd:element>
+
+</xsd:schema>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+			targetNamespace="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+			xmlns:orig="http://www.liquibase.org/xml/ns/dbchangelog"
+			elementFormDefault="qualified">
+
+	<!--    <xsd:import namespace="http://www.liquibase.org/xml/ns/dbchangelog" schemaLocation="dbchangelog-4.2.xsd"/>-->
+
+	<xsd:annotation>
+		<xsd:appinfo>MDTU-DDM project</xsd:appinfo>
+		<xsd:documentation xml:lang="en">
+			This Schema introduces additional attributes "historyFlag" and "distribution" for standard element "createTable".
+			"historyFlag" attribute implements DDM feature: historical tables.
+				If historyFlag="true" liquibase will generate DDL for two tables:
+					historical data table_name=ENTITY_NAME_hst (append only allowed)
+					recent data table_name=ENTITY_NAME (all DMLs allowed)
+			"distribution" attribute implements DDM feature: distribution in Citus cluster for recent data and/or historical data.
+			"distribution" attribute has several options:
+				"local" -             liquibase will not generate any API calls to distribute tables in Citus cluster
+				"distributeAll" -     liquibase will generate API call to distribute recent and historical data tables
+				"distributePrimary" - liquibase will generate API call to distribute recent data table
+				"distributeHistory" - liquibase will generate API call to distribute historical data table
+				"referenceAll" -      liquibase will generate API call to reference recent and historical data tables
+				"referencePrimary" -  liquibase will generate API call to reference recent data table
+				"referenceHistory" -  liquibase will generate API call to reference historical data table
+		</xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:simpleType name="distributionType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="local"/>
+			<xsd:enumeration value="distributeAll"/>
+			<xsd:enumeration value="distributePrimary"/>
+			<xsd:enumeration value="distributeHistory"/>
+			<xsd:enumeration value="referenceAll"/>
+			<xsd:enumeration value="referencePrimary"/>
+			<xsd:enumeration value="referenceHistory"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="classifyType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="private"/>
+			<xsd:enumeration value="confidential"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:attribute name="historyFlag" type="xsd:boolean"/>
+	<xsd:attribute name="distribution" type="distributionType" default="local"/>
+	<xsd:attribute name="classify" type="classifyType"/>
+
+</xsd:schema>

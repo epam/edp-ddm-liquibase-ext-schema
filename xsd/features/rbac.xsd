@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.liquibase.org/xml/ns/dbchangelog-ext" targetNamespace="http://www.liquibase.org/xml/ns/dbchangelog-ext" elementFormDefault="qualified">
+
+	<xsd:annotation>
+		<xsd:appinfo>MDTU-DDM project</xsd:appinfo>
+		<xsd:documentation xml:lang="en">
+			This Schema defines RBAC
+		</xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="rbac">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="role" maxOccurs="unbounded">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="table" maxOccurs="unbounded">
+								<xsd:complexType>
+									<xsd:sequence>
+										<xsd:element name="column" minOccurs="0" maxOccurs="unbounded">
+											<xsd:complexType>
+												<xsd:attribute name="name" type="xsd:string" use="required"/>
+												<xsd:attribute name="read" type="xsd:boolean" use="optional"/>
+												<xsd:attribute name="update" type="xsd:boolean" use="optional"/>
+											</xsd:complexType>
+										</xsd:element>
+									</xsd:sequence>
+									<xsd:attribute name="name" type="xsd:string" use="required"/>
+									<xsd:attribute name="insert" type="xsd:boolean" use="optional"/>
+									<xsd:attribute name="delete" type="xsd:boolean" use="optional"/>
+									<xsd:attribute name="read" type="xsd:boolean" use="optional"/>
+									<xsd:attribute name="update" type="xsd:boolean" use="optional"/>
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
+						<xsd:attribute name="name" type="xsd:string" use="required"/>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+</xsd:schema>
