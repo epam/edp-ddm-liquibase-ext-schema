@@ -497,37 +497,45 @@
 		</xsd:documentation>
 	</xsd:annotation>
 
-	<xsd:element name="rbac">
-		<xsd:complexType>
-			<xsd:sequence>
-				<xsd:element name="role" maxOccurs="unbounded">
-					<xsd:complexType>
-						<xsd:sequence>
-							<xsd:element name="table" maxOccurs="unbounded">
-								<xsd:complexType>
-									<xsd:sequence>
-										<xsd:element name="column" minOccurs="0" maxOccurs="unbounded">
-											<xsd:complexType>
-												<xsd:attribute name="name" type="xsd:string" use="required"/>
-												<xsd:attribute name="read" type="xsd:boolean" use="optional"/>
-												<xsd:attribute name="update" type="xsd:boolean" use="optional"/>
-											</xsd:complexType>
-										</xsd:element>
-									</xsd:sequence>
-									<xsd:attribute name="name" type="xsd:string" use="required"/>
-									<xsd:attribute name="insert" type="xsd:boolean" use="optional"/>
-									<xsd:attribute name="delete" type="xsd:boolean" use="optional"/>
-									<xsd:attribute name="read" type="xsd:boolean" use="optional"/>
-									<xsd:attribute name="update" type="xsd:boolean" use="optional"/>
-								</xsd:complexType>
-							</xsd:element>
-						</xsd:sequence>
-						<xsd:attribute name="name" type="xsd:string" use="required"/>
-					</xsd:complexType>
-				</xsd:element>
-			</xsd:sequence>
-		</xsd:complexType>
-	</xsd:element>
+	<xsd:complexType name="rbacColumnType">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="read" type="xsd:boolean" use="optional"/>
+		<xsd:attribute name="update" type="xsd:boolean" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="rbacTableType">
+		<xsd:sequence>
+			<xsd:element name="column" type="rbacColumnType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="insert" type="xsd:boolean" use="optional"/>
+		<xsd:attribute name="delete" type="xsd:boolean" use="optional"/>
+		<xsd:attribute name="read" type="xsd:boolean" use="optional"/>
+		<xsd:attribute name="update" type="xsd:boolean" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="rbacRoleType">
+		<xsd:sequence>
+			<xsd:element name="table" type="rbacTableType" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="rbacRealmRoleType">
+		<xsd:sequence>
+			<xsd:element name="table" type="rbacTableType" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="realm" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="rbacType">
+		<xsd:sequence>
+			<xsd:element name="role" type="rbacRealmRoleType" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="rbac" type="rbacType"/>
 
 	<!--	PARTIAL UPDATE    -->
 
