@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.liquibase.org/xml/ns/dbchangelog-ext" elementFormDefault="qualified">
+
 	<xsd:annotation>
 		<xsd:appinfo>MDTU-DDM project</xsd:appinfo>
 		<xsd:documentation xml:lang="en">
@@ -574,5 +575,42 @@
 			</xsd:sequence>
 		</xsd:complexType>
 	</xsd:element>
+
+	<!--	GRANT    -->
+
+	<xsd:complexType name="grantViewType">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="grantRoleType">
+		<xsd:sequence>
+			<xsd:element name="view" type="grantViewType" minOccurs="1" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="grantType">
+		<xsd:sequence>
+			<xsd:element name="role" type="grantRoleType" minOccurs="1" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="grant" type="grantType"/>
+
+	<xsd:element name="revoke" type="grantType"/>
+
+	<xsd:complexType name="grantRoleSimpleType">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="grantAllType">
+		<xsd:sequence>
+			<xsd:element name="role" type="grantRoleSimpleType" minOccurs="1" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="grantAll" type="grantAllType"/>
+
+	<xsd:element name="revokeAll" type="grantAllType"/>
 
 </xsd:schema>

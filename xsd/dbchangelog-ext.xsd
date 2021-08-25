@@ -9,4 +9,5 @@
 	<xsd:include schemaLocation="features/rbac.xsd"/>
 	<xsd:include schemaLocation="features/partialUpdate.xsd"/>
 	<xsd:include schemaLocation="features/subjectObject.xsd"/>
+	<xsd:include schemaLocation="features/grant.xsd"/>
 </xsd:schema>
