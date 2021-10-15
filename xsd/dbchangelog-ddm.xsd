@@ -64,7 +64,7 @@
 
 	<xsd:element name="dropType">
 		<xsd:complexType>
-			<xsd:attribute name="typeName" type="xsd:string" use="required"/>
+			<xsd:attribute name="name" type="xsd:string" use="required"/>
 		</xsd:complexType>
 	</xsd:element>
 
