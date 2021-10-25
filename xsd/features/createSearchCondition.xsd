@@ -216,7 +216,7 @@
 		<xsd:attribute name="name" type="xsd:string" use="required"/>
 		<xsd:attribute name="indexing" type="xsd:boolean" use="optional"/>
 		<xsd:attribute name="limit" type="limitType" use="optional" default="all"/>
-		<xsd:attribute name="pagination" type="xsd:boolean" use="optional" default="false"/>
+		<xsd:attribute name="pagination" type="xsd:boolean" use="optional" default="true"/>
 	</xsd:complexType>
 
 	<xsd:element name="createSearchCondition" type="selectSearchConditionType">
