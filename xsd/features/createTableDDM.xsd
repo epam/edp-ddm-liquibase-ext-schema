@@ -8,7 +8,7 @@
 	<!--    <xsd:import namespace="http://www.liquibase.org/xml/ns/dbchangelog" schemaLocation="dbchangelog-4.2.xsd"/>-->
 
 	<xsd:annotation>
-		<xsd:appinfo>MDTU-DDM project</xsd:appinfo>
+		<xsd:appinfo>EDP-DDM project</xsd:appinfo>
 		<xsd:documentation xml:lang="en">
 			This Schema introduces additional attributes "historyFlag" and "distribution" for standard element "createTable".
 			"historyFlag" attribute implements DDM feature: historical tables.
