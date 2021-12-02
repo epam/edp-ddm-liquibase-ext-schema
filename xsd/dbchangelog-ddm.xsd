@@ -327,7 +327,6 @@
 
 	<xsd:complexType name="columnType">
 		<xsd:attribute name="name" type="xsd:string" use="required"/>
-		<xsd:attribute name="returning" type="xsd:boolean" use="optional" default="true"/>
 		<xsd:attribute name="alias" type="xsd:string" use="optional"/>
 	</xsd:complexType>
 
