@@ -612,6 +612,32 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<!--	nested entities   -->
+
+	<xsd:complexType name="nestedType">
+		<xsd:sequence>
+			<xsd:element name="link" minOccurs="0">
+				<xsd:complexType>
+					<xsd:attribute name="column" type="xsd:string" use="required"/>
+					<xsd:attribute name="entity" type="xsd:string" use="required"/>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="table" type="xsd:string" use="required"/>
+		<xsd:attribute name="name" type="xsd:string"/>
+	</xsd:complexType>
+
+	<xsd:element name="nestedEntity" type="nestedType"/>
+
+	<xsd:element name="createCompositeEntity">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="nestedEntity" type="nestedType" maxOccurs="unbounded"/>
+			</xsd:sequence>
+			<xsd:attribute name="name" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
 <!--	createMany2Many    -->
 
 	<xsd:annotation>
