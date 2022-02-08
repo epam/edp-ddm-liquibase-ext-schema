@@ -345,6 +345,7 @@
 		<xsd:attribute name="columnName" type="xsd:string" use="required"/>
 		<xsd:attribute name="alias" type="xsd:string" use="required"/>
 		<xsd:attribute name="parameter" type="xsd:string" use="optional"/>
+		<xsd:attribute name="window" type="xsd:string" use="optional"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="tableType">
