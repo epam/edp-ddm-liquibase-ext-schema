@@ -265,6 +265,7 @@
 			<xsd:enumeration value="count"/>
 			<xsd:enumeration value="sum"/>
 			<xsd:enumeration value="string_agg"/>
+			<xsd:enumeration value="row_number"/>
 		</xsd:restriction>
 	</xsd:simpleType>
 
