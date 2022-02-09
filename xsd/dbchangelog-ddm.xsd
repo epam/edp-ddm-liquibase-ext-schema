@@ -618,7 +618,7 @@
 
 	<xsd:complexType name="nestedType">
 		<xsd:sequence>
-			<xsd:element name="link" minOccurs="0">
+			<xsd:element name="link" minOccurs="0" maxOccurs="unbounded">
 				<xsd:complexType>
 					<xsd:attribute name="column" type="xsd:string" use="required"/>
 					<xsd:attribute name="entity" type="xsd:string" use="required"/>
