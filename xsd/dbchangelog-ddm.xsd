@@ -155,6 +155,7 @@
 	</xsd:simpleType>
 
 	<xsd:attribute name="historyFlag" type="xsd:boolean"/>
+	<xsd:attribute name="readMode" type="readType" default="sync"/>
 	<xsd:attribute name="distribution" type="distributionType" default="local"/>
 	<xsd:attribute name="classify" type="classifyType"/>
 
@@ -266,6 +267,13 @@
 			<xsd:enumeration value="sum"/>
 			<xsd:enumeration value="string_agg"/>
 			<xsd:enumeration value="row_number"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="readType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="sync"/>
+			<xsd:enumeration value="async"/>
 		</xsd:restriction>
 	</xsd:simpleType>
 
@@ -411,6 +419,7 @@
 				</xsd:element>
 			</xsd:sequence>
 			<xsd:attribute name="name" type="xsd:string" use="required"/>
+			<xsd:attribute name="readMode" type="readType" use="optional"/>
 			<xsd:attribute name="indexing" type="xsd:boolean" use="optional"/>
 			<xsd:attribute name="limit" type="limitType" use="optional" default="all"/>
 		</xsd:complexType>
@@ -435,6 +444,7 @@
 			<xsd:element name="where" type="whereType" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
 		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="readMode" type="readType" use="optional"/>
 		<xsd:attribute name="indexing" type="xsd:boolean" use="optional"/>
 		<xsd:attribute name="limit" type="limitType" use="optional" default="all"/>
 		<xsd:attribute name="pagination" type="xsd:boolean" use="optional" default="true"/>
