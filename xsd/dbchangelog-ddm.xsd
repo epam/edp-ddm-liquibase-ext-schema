@@ -462,7 +462,9 @@
 	<xsd:element name="exposeSearchCondition">
 		<xsd:complexType>
 			<xsd:attribute name="name" type="xsd:string" use="required"/>
-			<xsd:attribute name="consumer" type="xsd:string" use="optional" default="trembita"/>
+			<xsd:attribute name="trembita" type="xsd:boolean" use="optional" default="false"/>
+			<xsd:attribute name="platform" type="xsd:boolean" use="optional" default="false"/>
+			<xsd:attribute name="externalSystem" type="xsd:boolean" use="optional" default="false"/>
 		</xsd:complexType>
 	</xsd:element>
 
