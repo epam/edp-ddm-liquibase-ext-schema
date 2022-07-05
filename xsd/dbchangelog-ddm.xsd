@@ -302,6 +302,13 @@
 		</xsd:restriction>
 	</xsd:simpleType>
 
+	<xsd:simpleType name="fetchType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="id"/>
+			<xsd:enumeration value="entity"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
 	<xsd:attributeGroup name="conditionAttributeGroup">
 		<xsd:attribute name="tableAlias" type="xsd:string" use="optional"/>
 		<xsd:attribute name="columnName" type="xsd:string" use="required"/>
@@ -348,6 +355,7 @@
 		<xsd:attribute name="alias" type="xsd:string" use="optional"/>
 		<xsd:attribute name="searchType" type="searchType" use="optional"/>
 		<xsd:attribute name="sorting" type="sortType" use="optional"/>
+		<xsd:attribute name="fetchType" type="fetchType" use="optional"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="functionType">
@@ -653,6 +661,21 @@
 			<xsd:attribute name="name" type="xsd:string" use="required"/>
 		</xsd:complexType>
 	</xsd:element>
+
+<!-- 	tableReadParameters -->
+	<xsd:complexType name="tableReadParametersType">
+		<xsd:sequence>
+			<xsd:element name="column" minOccurs="0" maxOccurs="unbounded">
+				<xsd:complexType>
+					<xsd:attribute name="name" type="xsd:string" use="required"/>
+					<xsd:attribute name="fetchType" type="fetchType" use="required"/>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="table" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:element name="tableReadParameters" type="tableReadParametersType" />
 
 <!--	createMany2Many    -->
 
