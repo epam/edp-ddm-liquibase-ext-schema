@@ -236,6 +236,7 @@
 			<xsd:enumeration value="contains"/>
 			<xsd:enumeration value="in"/>
 			<xsd:enumeration value="between"/>
+			<xsd:enumeration value="notIn"/>
 		</xsd:restriction>
 	</xsd:simpleType>
 
