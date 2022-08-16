@@ -158,6 +158,7 @@
 	<xsd:attribute name="readMode" type="readType" default="sync"/>
 	<xsd:attribute name="distribution" type="distributionType" default="local"/>
 	<xsd:attribute name="classify" type="classifyType"/>
+	<xsd:attribute name="autoGenerate" type="xsd:string"/>
 
 	<xsd:annotation>
 		<xsd:appinfo>EDP-DDM project</xsd:appinfo>
