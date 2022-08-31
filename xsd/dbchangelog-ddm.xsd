@@ -238,6 +238,7 @@
 			<xsd:enumeration value="in"/>
 			<xsd:enumeration value="between"/>
 			<xsd:enumeration value="notIn"/>
+			<xsd:enumeration value="notEqual"/>
 		</xsd:restriction>
 	</xsd:simpleType>
 
