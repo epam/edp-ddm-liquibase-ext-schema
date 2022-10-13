@@ -221,6 +221,49 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<!--	rls-->
+	<xsd:annotation>
+		<xsd:appinfo>EDP-DDM project</xsd:appinfo>
+		<xsd:documentation xml:lang="en">
+			This Schema defines a new "rls" instance for Row Level Security model in PostgreSQL
+		</xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:complexType name="addReadRuleType">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="jwtAttribute" type="xsd:string" use="required"/>
+		<xsd:attribute name="checkColumn" type="xsd:string" use="required"/>
+		<xsd:attribute name="checkTable" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="addWriteRuleType">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="jwtAttribute" type="xsd:string" use="required"/>
+		<xsd:attribute name="checkColumn" type="xsd:string" use="required"/>
+		<xsd:attribute name="checkTable" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="removeReadRuleType">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="removeWriteRuleType">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="rlsType">
+		<xsd:sequence>
+			<xsd:element name="addReadRule" type="addReadRuleType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="addWriteRule" type="addWriteRuleType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="removeReadRule" type="removeReadRuleType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="removeWriteRule" type="removeWriteRuleType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
+	<xsd:element name="rls" type="rlsType">
+	</xsd:element>
+
 	<!-- createSearchCondition -->
 
 	<xsd:annotation>
@@ -234,6 +277,7 @@
 		<xsd:restriction base="xsd:string">
 			<xsd:enumeration value="equal"/>
 			<xsd:enumeration value="startsWith"/>
+			<xsd:enumeration value="startsWithArray"/>
 			<xsd:enumeration value="contains"/>
 			<xsd:enumeration value="in"/>
 			<xsd:enumeration value="between"/>
