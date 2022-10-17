@@ -159,6 +159,7 @@
 	<xsd:attribute name="distribution" type="distributionType" default="local"/>
 	<xsd:attribute name="classify" type="classifyType"/>
 	<xsd:attribute name="autoGenerate" type="xsd:string"/>
+	<xsd:attribute name="bulkLoad" type="xsd:boolean"/>
 
 	<xsd:annotation>
 		<xsd:appinfo>EDP-DDM project</xsd:appinfo>
