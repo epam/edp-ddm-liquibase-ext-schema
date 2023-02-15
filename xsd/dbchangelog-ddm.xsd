@@ -287,6 +287,17 @@
 		</xsd:restriction>
 	</xsd:simpleType>
 
+	<xsd:simpleType name="paginationType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="offset"/>
+			<xsd:enumeration value="page"/>
+			<xsd:enumeration value="none"/>
+			<!--Following is for the backward compatibility-->
+			<xsd:enumeration value="true"/> <!--Synonym for "offset"-->
+			<xsd:enumeration value="false"/> <!--Synonym for "none"-->
+		</xsd:restriction>
+	</xsd:simpleType>
+
 	<xsd:simpleType name="limitType">
 		<xsd:restriction base="xsd:string">
 			<xsd:pattern value="all"/>
@@ -505,7 +516,7 @@
 		<xsd:attribute name="readMode" type="readType" use="optional"/>
 		<xsd:attribute name="indexing" type="xsd:boolean" use="optional"/>
 		<xsd:attribute name="limit" type="limitType" use="optional" default="all"/>
-		<xsd:attribute name="pagination" type="xsd:boolean" use="optional" default="true"/>
+		<xsd:attribute name="pagination" type="paginationType" use="optional" default="true"/>
 	</xsd:complexType>
 
 	<xsd:element name="createSearchCondition" type="selectSearchConditionType">
@@ -547,7 +558,7 @@
 		<xsd:attribute name="name" type="xsd:string" use="required"/>
 		<xsd:attribute name="indexing" type="xsd:boolean" use="optional"/>
 		<xsd:attribute name="limit" type="limitType" use="optional" default="all"/>
-		<xsd:attribute name="pagination" type="xsd:boolean" use="optional" default="false"/>
+		<xsd:attribute name="pagination" type="paginationType" use="optional" default="false"/>
 	</xsd:complexType>
 
 	<xsd:element name="createAnalyticsView" type="selectAnalyticsViewType">
