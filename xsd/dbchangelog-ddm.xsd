@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema xmlns="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.liquibase.org/xml/ns/dbchangelog-ext" elementFormDefault="qualified">
+<xsd:schema xmlns="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://www.liquibase.org/xml/ns/dbchangelog-ext" targetNamespace="http://www.liquibase.org/xml/ns/dbchangelog-ext" elementFormDefault="qualified">
 
 	<xsd:annotation>
 		<xsd:appinfo>EDP-DDM project</xsd:appinfo>
@@ -76,9 +76,9 @@
 					[ COLLATE collation ]
 					[ DEFAULT expression ]
 					[ constraint [ ... ] ]
-				
+
 				where constraint is:
-				
+
 				[ CONSTRAINT constraint_name ]
 				{ NOT NULL | NULL | CHECK (expression) }
 		</xsd:documentation>
@@ -840,6 +840,33 @@
 			</xsd:sequence>
 			<xsd:attribute name="name" type="xsd:string" use="required"/>
 		</xsd:complexType>
+	</xsd:element>
+
+	<!--	ALTER TABLE API    -->
+
+	<xsd:simpleType name="alterTableAttrNameType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="readMode"/>
+			<xsd:enumeration value="bulkLoad"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:element name="alterTableApi">
+		<xsd:complexType>
+			<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+				<xsd:element name="attribute">
+					<xsd:complexType>
+						<xsd:attribute name="name" type="alterTableAttrNameType" use="required"/>
+						<xsd:attribute name="value" type="xsd:string" use="required"/>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:attribute name="table" type="xsd:string" use="required"/>
+		</xsd:complexType>
+		<xsd:unique name="attribute-name-unique">
+			<xsd:selector xpath="tns:attribute"/>
+			<xsd:field xpath="@name"/>
+		</xsd:unique>
 	</xsd:element>
 
 	<!--	MAKE OBJECT    -->
