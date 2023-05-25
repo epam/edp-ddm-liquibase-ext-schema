@@ -534,6 +534,8 @@
 			<xsd:attribute name="trembita" type="xsd:boolean" use="optional" default="false"/>
 			<xsd:attribute name="platform" type="xsd:boolean" use="optional" default="false"/>
 			<xsd:attribute name="externalSystem" type="xsd:boolean" use="optional" default="false"/>
+      <!--Public access to the resource must be explicitly granted or revoked, therefore there is no default value-->
+			<xsd:attribute name="publicAccess" type="xsd:boolean" use="optional"/>
 		</xsd:complexType>
 	</xsd:element>
 
