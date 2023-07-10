@@ -723,6 +723,46 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<!--	metadata entities   -->
+
+	<xsd:element name="createAsyncLoad">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="entityList">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element maxOccurs="unbounded" name="entity">
+								<xsd:complexType>
+									<xsd:attribute name="name" type="xsd:string" use="required" />
+									<xsd:attribute name="limit" type="xsd:unsignedInt" use="required" />
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:attribute name="name" type="xsd:string" use="required" />
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="deleteAsyncLoad">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="entityList">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element maxOccurs="unbounded" name="entity">
+								<xsd:complexType>
+									<xsd:attribute name="name" type="xsd:string" use="required" />
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:attribute name="name" type="xsd:string" use="required" />
+		</xsd:complexType>
+	</xsd:element>
 <!-- 	tableReadParameters -->
 	<xsd:complexType name="tableReadParametersType">
 		<xsd:sequence>
