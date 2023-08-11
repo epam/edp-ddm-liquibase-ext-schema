@@ -441,10 +441,21 @@
 			<xsd:choice minOccurs="1" maxOccurs="unbounded">
 				<xsd:element name="column" type="columnSearchConditionType" maxOccurs="unbounded"/>
 				<xsd:element name="function" type="functionType" maxOccurs="unbounded"/>
+				<xsd:element name="logicOperator" type="tableLogicOperatorType" maxOccurs="unbounded"/>
 			</xsd:choice>
 		</xsd:sequence>
 		<xsd:attribute name="name" type="xsd:string" use="required"/>
 		<xsd:attribute name="alias" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="tableLogicOperatorType">
+		<xsd:sequence>
+			<xsd:choice minOccurs="2" maxOccurs="unbounded">
+				<xsd:element name="column" type="columnSearchConditionType" maxOccurs="unbounded"/>
+				<xsd:element name="logicOperator" type="tableLogicOperatorType" maxOccurs="unbounded"/>
+			</xsd:choice>
+		</xsd:sequence>
+		<xsd:attribute name="type" type="logicOperatorType" use="required"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="joinColumnType">
