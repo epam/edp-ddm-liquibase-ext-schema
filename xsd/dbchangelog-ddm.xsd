@@ -415,6 +415,7 @@
 		<xsd:attribute name="searchType" type="searchType" use="optional"/>
 		<xsd:attribute name="sorting" type="sortType" use="optional"/>
 		<xsd:attribute name="fetchType" type="fetchType" use="optional"/>
+		<xsd:attribute name="required" type="xsd:boolean" use="optional"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="functionType">
@@ -850,6 +851,10 @@
 		<xsd:attribute name="update" type="xsd:boolean" use="optional"/>
 	</xsd:complexType>
 
+	<xsd:complexType name="rbacSearchConditionType">
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+	</xsd:complexType>
+
 	<xsd:complexType name="rbacRoleType">
 		<xsd:sequence>
 			<xsd:element name="table" type="rbacTableType" maxOccurs="unbounded"/>
@@ -858,9 +863,10 @@
 	</xsd:complexType>
 
 	<xsd:complexType name="rbacRealmRoleType">
-		<xsd:sequence>
+		<xsd:choice>
 			<xsd:element name="table" type="rbacTableType" maxOccurs="unbounded"/>
-		</xsd:sequence>
+			<xsd:element name="searchCondition" type="rbacSearchConditionType" maxOccurs="unbounded"/>
+		</xsd:choice>
 		<xsd:attribute name="name" type="xsd:string" use="required"/>
 		<xsd:attribute name="realm" type="xsd:string" use="optional"/>
 	</xsd:complexType>
